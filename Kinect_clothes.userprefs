@@ -1,8 +1,13 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MyStricps\MyKinectManager.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MyStricps\ScreenPos.shader">
     <Files>
-      <File FileName="Assets\MyStricps\MyKinectManager.cs" Line="1" Column="1" />
+      <File FileName="Assets\KinectScripts\KinectInterop.cs" Line="1" Column="1" />
+      <File FileName="Assets\KinectScripts\KinectManager.cs" Line="1" Column="1" />
+      <File FileName="Assets\Standard Assets\Windows\Kinect\KinectWrapper.HandCoded.cs" Line="1" Column="1" />
+      <File FileName="Assets\KinectScripts\Filters\JointPositionsFilter.cs" Line="1" Column="1" />
+      <File FileName="Assets\KinectScripts\Filters\BoneOrientationsConstraint.cs" Line="1" Column="1" />
+      <File FileName="Assets\MyStricps\ScreenPos.shader" Line="27" Column="23" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
