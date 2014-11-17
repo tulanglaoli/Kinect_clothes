@@ -46,10 +46,6 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\CameraView\MyStricps\InitSet.cs" />
-     <Compile Include="Assets\CameraView\MyStricps\MyKinectManager.cs" />
-     <Compile Include="Assets\Demo_1\Scripts\ChangeShaderTex.cs" />
-     <Compile Include="Assets\Demo_1\Scripts\MyKinectInterface.cs" />
      <Compile Include="Assets\KinectScripts\AvatarController.cs" />
      <Compile Include="Assets\KinectScripts\Cubeman\CubemanController.cs" />
      <Compile Include="Assets\KinectScripts\Extras\LoadMainLevel.cs" />
@@ -63,7 +59,8 @@
      <Compile Include="Assets\KinectScripts\KinectInterop.cs" />
      <Compile Include="Assets\KinectScripts\KinectManager.cs" />
      <Compile Include="Assets\KinectScripts\KinectServer.cs" />
-     <None Include="Assets\CameraView\MyStricps\ScreenPos.shader" />
+     <Compile Include="Assets\MyStricps\MyKinectManager.cs" />
+     <None Include="Assets\MyStricps\ScreenPos.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity 5.0.0b1/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
