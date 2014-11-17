@@ -663,11 +663,13 @@ namespace Windows.Kinect
 		}
 		
 		
-		// Static Methods
+		// Static Methods   CallingConvention：调用方清理堆栈。 这使您能够调用具有 varargs 的函数（如 Printf），使之可用于接受可变数目的参数的方法。 （Cdecl为win8默认）
 		[RootSystem.Runtime.InteropServices.DllImport("KinectForUnity", CallingConvention=RootSystem.Runtime.InteropServices.CallingConvention.Cdecl)]
 		private static extern RootSystem.IntPtr Windows_Kinect_KinectSensor_GetDefault();
+		//这个方法是用来获取默认的sensor的
 		public static Windows.Kinect.KinectSensor GetDefault()
 		{
+			//获取句柄int
 			RootSystem.IntPtr objectPointer = Windows_Kinect_KinectSensor_GetDefault();
 			if (objectPointer == RootSystem.IntPtr.Zero)
 			{
@@ -675,7 +677,9 @@ namespace Windows.Kinect
 			}
 			
 			objectPointer = Helper.NativeObjectCache.MapToIUnknown(objectPointer);
+			//根据类型和句柄获取对象
 			var obj = Helper.NativeObjectCache.GetObject<Windows.Kinect.KinectSensor>(objectPointer);
+			//如果obj是第一次建立,就新建一个,同时添加句柄加类型与对象的关系
 			if (obj == null)
 			{
 				obj = new Windows.Kinect.KinectSensor(objectPointer);

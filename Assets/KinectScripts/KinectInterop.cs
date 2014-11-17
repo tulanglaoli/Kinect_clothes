@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Windows.Kinect;
 
 using System.Collections;
@@ -29,7 +29,7 @@ public class KinectInterop
 	
 	/// Data structures for interfacing C# with the native wrapper
 
-    [Flags]
+    [Flags]//如果为这个flags ,那么枚举就必须之2次方提升。
     public enum FrameSource : uint
     {
         TypeColor = 0x1,
@@ -355,6 +355,7 @@ public class KinectInterop
 		SensorData sensorData = new SensorData();
 
 		sensorData.kinectSensor = KinectSensor.GetDefault();
+
 		if(sensorData.kinectSensor == null)
 			return null;
 
@@ -1051,7 +1052,9 @@ public class KinectInterop
 	// Copy a resource file to the target
 	private static bool CopyResourceFile(string targetFilePath, string resFileName, ref bool bOneCopied, ref bool bAllCopied)
 	{
+		//在Resources里面获取dll文件 KinectForUnity.dll
 		TextAsset textRes = Resources.Load(resFileName, typeof(TextAsset)) as TextAsset;
+		//如果dll在项目中不存在
 		if(textRes == null)
 		{
 			bOneCopied = false;
@@ -1059,19 +1062,23 @@ public class KinectInterop
 			
 			return false;
 		}
-		
+		//读取文件KinectForUnity.dll
 		FileInfo targetFile = new FileInfo(targetFilePath);
+		//如果目录不存在的话
 		if(!targetFile.Directory.Exists)
 		{
 			targetFile.Directory.Create();
 		}
-		
+		//文件不存在或者文件的长度和文件长度不相同
 		if(!targetFile.Exists || targetFile.Length !=  textRes.bytes.Length)
 		{
+			//如果不为空
 			if(textRes != null)
 			{
+				//                                               指定的路径、        创建模式、          读/写权限  和     共享权限
 				using (FileStream fileStream = new FileStream (targetFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
 				{
+					//把工作流写入指定的路径
 					fileStream.Write(textRes.bytes, 0, textRes.bytes.Length);
 				}
 				
@@ -1086,7 +1093,8 @@ public class KinectInterop
 		
 		return false;
 	}
-	
+
+	//判断是否存在我们所需的dll文件，如果存在返回ture;
 	// Copies the needed resources into the project directory
 	public static bool EnsureKinectWrapperPresence()
 	{

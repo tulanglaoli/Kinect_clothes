@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Windows.Kinect;
 
 using System;
@@ -152,6 +152,7 @@ public class KinectManager : MonoBehaviour
 	// checks if Kinect is initialized and ready to use. If not, there was an error during Kinect-sensor initialization
 	public static bool IsKinectInitialized()
 	{
+
 		return instance != null ? instance.kinectInitialized : false;
 	}
 	
@@ -897,6 +898,7 @@ public class KinectManager : MonoBehaviour
 	{
 		try
 		{
+			//
 			if(KinectInterop.EnsureKinectWrapperPresence())
 			{
 				// reload the same level
@@ -931,6 +933,7 @@ public class KinectManager : MonoBehaviour
 //			}
 
 			// try to initialize the default Kinect2 sensor
+			//一个参数二进制参数，用开开启各种功能，由于枚举是以二次方提升的，直接| 按位或运算形成类似01111111形式
 			KinectInterop.FrameSource dwFlags = KinectInterop.FrameSource.TypeBody;
 			if(computeUserMap)
 				dwFlags |= KinectInterop.FrameSource.TypeDepth | KinectInterop.FrameSource.TypeBodyIndex;
