@@ -48,9 +48,6 @@
   <ItemGroup>
      <Compile Include="Assets\Standard Assets\Windows\Kinect\KinectWrapper.HandCoded.cs" />
      <Compile Include="Assets\Standard Assets\Windows\Kinect\KinectWrapper.cs" />
- <Reference Include="UnityEngine.UI">
- <HintPath>C:/Program Files/Unity 5.0.0b1/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
- </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
