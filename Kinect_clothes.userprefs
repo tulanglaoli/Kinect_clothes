@@ -1,13 +1,13 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MyStricps\ScreenPos.shader">
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\KinectScripts\KinectManager.cs">
     <Files>
-      <File FileName="Assets\KinectScripts\KinectInterop.cs" Line="1" Column="1" />
-      <File FileName="Assets\KinectScripts\KinectManager.cs" Line="1" Column="1" />
-      <File FileName="Assets\Standard Assets\Windows\Kinect\KinectWrapper.HandCoded.cs" Line="1" Column="1" />
-      <File FileName="Assets\KinectScripts\Filters\JointPositionsFilter.cs" Line="1" Column="1" />
-      <File FileName="Assets\KinectScripts\Filters\BoneOrientationsConstraint.cs" Line="1" Column="1" />
-      <File FileName="Assets\MyStricps\ScreenPos.shader" Line="27" Column="23" />
+      <File FileName="Assets\KinectScripts\KinectManager.cs" Line="1530" Column="4" />
+      <File FileName="Assets\KinectScripts\KinectInterop.cs" Line="20" Column="43" />
+      <File FileName="Assets\Standard Assets\Windows\Kinect\KinectWrapper.cs" Line="4856" Column="3" />
+      <File FileName="Assets\init\MyStricps\MyKinectOperate.cs" Line="12" Column="33" />
+      <File FileName="Assets\init\MyStricps\background.cs" Line="1" Column="1" />
+      <File FileName="Assets\init\MyStricps\ColorImgShow.cs" Line="13" Column="80" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

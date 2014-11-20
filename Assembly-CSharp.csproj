@@ -59,8 +59,11 @@
      <Compile Include="Assets\KinectScripts\KinectInterop.cs" />
      <Compile Include="Assets\KinectScripts\KinectManager.cs" />
      <Compile Include="Assets\KinectScripts\KinectServer.cs" />
-     <Compile Include="Assets\MyStricps\MyKinectManager.cs" />
-     <None Include="Assets\MyStricps\ScreenPos.shader" />
+     <Compile Include="Assets\init\MyStricps\ColorImgShow.cs" />
+     <Compile Include="Assets\init\MyStricps\MyKinectManager.cs" />
+     <Compile Include="Assets\init\MyStricps\MyKinectOperate.cs" />
+     <Compile Include="Assets\init\MyStricps\background.cs" />
+     <None Include="Assets\init\MyStricps\ScreenPos.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity 5.0.0b1/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

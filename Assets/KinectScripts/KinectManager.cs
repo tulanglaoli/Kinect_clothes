@@ -103,7 +103,10 @@ public class KinectManager : MonoBehaviour
 	private int usersMapSize;
 //	private int minDepth;
 //	private int maxDepth;
-	
+	private Color32[] usersColorHistogramImage;
+	private ushort[] usersColorPrevState;
+	private Texture2D usersClrLblTex;
+
 	// Color map
 	//private KinectInterop.ColorBuffer colorImage;
 	private Texture2D usersClrTex;
@@ -191,6 +194,11 @@ public class KinectManager : MonoBehaviour
 	public Texture2D GetUsersClrTex()
 	{ 
 		return usersClrTex;
+	}
+
+	public Texture2D GetUsersClrLblTex()
+	{
+		return usersClrLblTex;
 	}
 	
 	// returns true if at least one user is currently detected by the sensor
@@ -1068,6 +1076,10 @@ public class KinectManager : MonoBehaviour
 			{
 				usersMapRect.x -= cameraRect.width * MapsPercentWidth; //usersClrTex.width / 2;
 			}
+			usersColorHistogramImage = new Color32[usersClrSize];
+			usersColorPrevState = new ushort[usersClrSize];
+			usersClrLblTex = new Texture2D(sensorData.colorImageWidth, sensorData.colorImageHeight, TextureFormat.RGBA32, false);
+
 		}
 
 		// try to automatically find the available avatar controllers at the scene
@@ -1168,6 +1180,7 @@ public class KinectManager : MonoBehaviour
 				if(KinectInterop.PollColorFrame(sensorData))
 				{
 					UpdateColorMap();
+
 				}
 			}
 			
@@ -1176,6 +1189,7 @@ public class KinectManager : MonoBehaviour
 				if(KinectInterop.PollDepthFrame(sensorData))
 				{
 					UpdateUserMap();
+					UpdateColorUserMap();
 				}
 			}
 			
@@ -1287,9 +1301,41 @@ public class KinectManager : MonoBehaviour
 	{
 		//usersClrTex.SetPixels32(colorImage.pixels);
 		usersClrTex.LoadRawTextureData(sensorData.colorImage);
+		
+		for(int i = 0; i < alUserIds.Count; i++)
+		{
+			Int64 liUserId = alUserIds[i];
+			int index = dictUserIdToIndex[liUserId];
+			
+			if(index >= 0 && index < KinectInterop.Constants.BodyCount)
+			{
+				DrawSkeletonInColor(usersClrTex, ref bodyFrame.bodyData[index]);
+			}
+		}
+		
 		usersClrTex.Apply();
+
+
 	}
-	
+
+	void UpdateColorUserMap()
+	{
+		//if(KinectInterop.PollUserHistogramFrame(ref userHistogramImage, computeColorMap))
+		{
+			// draw user histogram
+			//usersLblTex.SetPixels32(userHistogramImage.pixels);
+			
+			UpdateUserColorHistogramImage();
+			usersClrLblTex.SetPixels32(usersColorHistogramImage);
+			
+			// draw skeleton lines
+
+			
+			usersClrLblTex.Apply();
+		}
+	}
+
+
 	// Update the user histogram
     void UpdateUserMap()
     {
@@ -1397,7 +1443,7 @@ public class KinectManager : MonoBehaviour
 						if(colorIndex >= 0 && colorIndex < usersClrSize)
 						{
 							int ci = colorIndex << 2;
-							Color32 colorPixel = new Color32(sensorData.colorImage[ci], sensorData.colorImage[ci + 1], sensorData.colorImage[ci + 2], 230);
+							Color32 colorPixel = new Color32(sensorData.colorImage[ci], sensorData.colorImage[ci + 1], sensorData.colorImage[ci + 2], sensorData.colorImage[ci + 3]);
 
 							usersHistogramImage[i] = colorPixel;
 						}
@@ -1427,9 +1473,129 @@ public class KinectManager : MonoBehaviour
 				}
 				
 			}
+		}	
+	}
+
+	void UpdateUserColorHistogramImage()
+	{
+		int numOfPoints = 0;
+		Array.Clear(usersHistogramMap, 0, usersHistogramMap.Length);
+		
+		// Calculate cumulative histogram for depth
+		for (int i = 0; i < usersMapSize; i++)
+		{
+			// Only calculate for depth that contains users
+			if (sensorData.bodyIndexImage[i] != 255)
+			{
+				ushort depth = sensorData.depthImage[i];
+				if(depth > 5000)
+					depth = 5000;
+				
+				usersHistogramMap[depth]++;
+				numOfPoints++;
+			}
 		}
 		
+		if (numOfPoints > 0)
+		{
+			for (int i = 1; i < usersHistogramMap.Length; i++)
+			{   
+				usersHistogramMap[i] += usersHistogramMap[i - 1];
+			}
+			
+			for (int i = 0; i < usersHistogramMap.Length; i++)
+			{
+				usersHistogramMap[i] = 1.0f - (usersHistogramMap[i] / numOfPoints);
+			}
+		}
+		
+		ColorSpacePoint[] colorCoords = null;
+		if(sensorData.colorImage != null)
+		{
+			colorCoords = new ColorSpacePoint[sensorData.depthImageWidth * sensorData.depthImageHeight];
+			sensorData.coordMapper.MapDepthFrameToColorSpace(sensorData.depthImage, colorCoords);
+		}
+		
+		// Create the actual users texture based on label map and depth histogram
+		Color32 clrClear = Color.clear;
+		for (int i = 0; i < usersMapSize; i++) {
+						ushort userMap = sensorData.bodyIndexImage [i];
+						ushort userDepth = sensorData.depthImage [i];
+						int cx = (int)(colorCoords [i].X);
+						int cy = (int)(colorCoords [i].Y);
+						int colorIndex = cx + cy * sensorData.colorImageWidth;
+						if (1 <cy && cy<sensorData.colorImageHeight-1&&1 <cx && cx<sensorData.colorImageWidth-1 ) {
+								ushort nowUserPixel = userMap != 255 ? (ushort)((userMap << 13) | userDepth) : userDepth;
+								ushort wasUserPixel = usersColorPrevState [colorIndex];
+			
+								// draw only the changed pixels
+								if (nowUserPixel != wasUserPixel) {
+										usersColorPrevState [colorIndex] = nowUserPixel;
+				
+										if (userMap == 255) {
+												usersColorHistogramImage [colorIndex - 1 - sensorData.colorImageWidth] = clrClear;
+												usersColorHistogramImage [colorIndex - sensorData.colorImageWidth] = clrClear;
+												usersColorHistogramImage [colorIndex + 1 - sensorData.colorImageWidth] = clrClear;
+												usersColorHistogramImage [colorIndex - 1] =clrClear;
+												usersColorHistogramImage [colorIndex] =clrClear;
+												usersColorHistogramImage [colorIndex + 1] =clrClear;
+												usersColorHistogramImage [colorIndex - 1 + sensorData.colorImageWidth] =clrClear;
+												usersColorHistogramImage [colorIndex + sensorData.colorImageWidth] = clrClear;
+												usersColorHistogramImage [colorIndex + 1 + sensorData.colorImageWidth] = clrClear;
+										} else {
+												if (sensorData.colorImage != null) {			
+														int ci = colorIndex << 2;
+														Color32[] colorPixel = new Color32[9];
+														colorPixel [0] = new Color32 (sensorData.colorImage [ci - (sensorData.colorImageWidth - 1) * 4], sensorData.colorImage [ci - (sensorData.colorImageWidth - 1) * 4 + 1], sensorData.colorImage [ci - (sensorData.colorImageWidth - 1) * 4 + 2], sensorData.colorImage [ci - (sensorData.colorImageWidth - 1) * 4 + 3]);
+														colorPixel [1] = new Color32 (sensorData.colorImage [ci - (sensorData.colorImageWidth) * 4], sensorData.colorImage [ci - (sensorData.colorImageWidth) * 4 + 1], sensorData.colorImage [ci - (sensorData.colorImageWidth) * 4 + 2], sensorData.colorImage [ci - (sensorData.colorImageWidth) * 4 + 3]);
+														colorPixel [2] = new Color32 (sensorData.colorImage [ci - (sensorData.colorImageWidth + 1) * 4], sensorData.colorImage [ci - (sensorData.colorImageWidth + 1) * 4 + 1], sensorData.colorImage [ci - (sensorData.colorImageWidth + 1) * 4 + 2], sensorData.colorImage [ci - (sensorData.colorImageWidth + 1) * 4 + 3]);
+														colorPixel [3] = new Color32 (sensorData.colorImage [ci - 4], sensorData.colorImage [ci + 1 - 4], sensorData.colorImage [ci + 2 - 4], sensorData.colorImage [ci + 3 - 4]);
+														colorPixel [4] = new Color32 (sensorData.colorImage [ci], sensorData.colorImage [ci + 1], sensorData.colorImage [ci + 2], sensorData.colorImage [ci + 3]);
+														colorPixel [5] = new Color32 (sensorData.colorImage [ci + 4], sensorData.colorImage [ci + 1 + 4], sensorData.colorImage [ci + 2 + 4], sensorData.colorImage [ci + 3 + 4]);
+														colorPixel [6] = new Color32 (sensorData.colorImage [ci + (sensorData.colorImageWidth - 1) * 4], sensorData.colorImage [ci + (sensorData.colorImageWidth - 1) * 4 + 1], sensorData.colorImage [ci + (sensorData.colorImageWidth - 1) * 4 + 2], sensorData.colorImage [ci + (sensorData.colorImageWidth - 1) * 4 + 3]);
+														colorPixel [7] = new Color32 (sensorData.colorImage [ci + (sensorData.colorImageWidth) * 4], sensorData.colorImage [ci + (sensorData.colorImageWidth) * 4 + 1], sensorData.colorImage [ci + (sensorData.colorImageWidth) * 4 + 2], sensorData.colorImage [ci + (sensorData.colorImageWidth) * 4 + 3]);
+														colorPixel [8] = new Color32 (sensorData.colorImage [ci + (sensorData.colorImageWidth + 1) * 4], sensorData.colorImage [ci + (sensorData.colorImageWidth + 1) * 4 + 1], sensorData.colorImage [ci + (sensorData.colorImageWidth + 1) * 4 + 2], sensorData.colorImage [ci + (sensorData.colorImageWidth + 1) * 4 + 3]);
+							
+														usersColorHistogramImage [colorIndex - 1 - sensorData.colorImageWidth] = colorPixel [0];
+														usersColorHistogramImage [colorIndex - sensorData.colorImageWidth] = colorPixel [1];
+														usersColorHistogramImage [colorIndex + 1 - sensorData.colorImageWidth] = colorPixel [2];
+														usersColorHistogramImage [colorIndex - 1] = colorPixel [3];
+														usersColorHistogramImage [colorIndex] = colorPixel [4];
+														usersColorHistogramImage [colorIndex + 1] = colorPixel [5];
+														usersColorHistogramImage [colorIndex - 1 + sensorData.colorImageWidth] = colorPixel [6];
+														usersColorHistogramImage [colorIndex + sensorData.colorImageWidth] = colorPixel [7];
+														usersColorHistogramImage [colorIndex + 1 + sensorData.colorImageWidth] = colorPixel [8];
+
+						
+												} else {
+														// Create a blending color based on the depth histogram
+														float histDepth = usersHistogramMap [userDepth];
+														Color c = new Color (histDepth, histDepth, histDepth, 0.9f);
+						
+														switch (userMap % 4) {
+														case 0:
+																usersColorHistogramImage [colorIndex] = Color.red * c;
+																break;
+														case 1:
+																usersColorHistogramImage [colorIndex] = Color.green * c;
+																break;
+														case 2:
+																usersColorHistogramImage [colorIndex] = Color.blue * c;
+																break;
+														case 3:
+																usersColorHistogramImage [colorIndex] = Color.magenta * c;
+																break;
+														}
+												}
+										}
+				
+								}
+						}
+				}
+		
 	}
+
+
 	
 	// Processes body frame data
 	private void ProcessBodyFrameData()
@@ -1873,6 +2039,52 @@ public class KinectManager : MonoBehaviour
 
 				if(posParent != Vector2.zero && posJoint != Vector2.zero)
 				{
+					//Color lineColor = playerJointsTracked[i] && playerJointsTracked[parent] ? Color.red : Color.yellow;
+					DrawLine(aTexture, (int)posParent.x, (int)posParent.y, (int)posJoint.x, (int)posJoint.y, Color.yellow);
+				}
+			}
+		}
+		
+		//aTexture.Apply();
+	}
+
+	private void DrawSkeletonInColor(Texture2D aTexture, ref KinectInterop.BodyData bodyData)
+	{
+		int jointsCount = KinectInterop.Constants.JointCount;
+		
+		for(int i = 0; i < jointsCount; i++)
+		{
+			int parent = (int)KinectInterop.GetParentJoint((JointType)i);
+			
+			if(bodyData.joint[i].trackingState != TrackingState.NotTracked && 
+			   bodyData.joint[parent].trackingState != TrackingState.NotTracked)
+			{
+				Vector2 posParent = KinectInterop.GetKinectPointColorCoords(sensorData, bodyData.joint[parent].kinectPos);
+				Vector2 posJoint = KinectInterop.GetKinectPointColorCoords(sensorData, bodyData.joint[i].kinectPos);
+				//				posParent.y = KinectInterop.Constants.ImageHeight - posParent.y - 1;
+				//				posJoint.y = KinectInterop.Constants.ImageHeight - posJoint.y - 1;
+				//				posParent.x = KinectInterop.Constants.ImageWidth - posParent.x - 1;
+				//				posJoint.x = KinectInterop.Constants.ImageWidth - posJoint.x - 1;
+				//XXXXXXXXXXXXXXX
+				//				if(i<=7)
+				//				{
+				//				Ray TEMPRAY= Camera.main.ScreenPointToRay(new Vector3( posJoint.x, posJoint.y, 0.0f));
+				//				TestGobject[i].transform.position =TEMPRAY.GetPoint(1000.0f);
+				//				}
+				
+				if(posParent != Vector2.zero && posJoint != Vector2.zero)
+				{
+					
+					//TestGobject.transform.position
+					
+					
+					
+					
+					//Gizmos.color = Color.yellow;
+					//Gizmos.DrawSphere(p, 0.1F);
+					//p  = Camera.main.ScreenToWorldPoint(new Vector3( posJoint.x, posJoint.y, Camera.main.nearClipPlane));
+					//Gizmos.color = Color.yellow;
+					//Gizmos.DrawSphere(p, 0.1F);
 					//Color lineColor = playerJointsTracked[i] && playerJointsTracked[parent] ? Color.red : Color.yellow;
 					DrawLine(aTexture, (int)posParent.x, (int)posParent.y, (int)posJoint.x, (int)posJoint.y, Color.yellow);
 				}

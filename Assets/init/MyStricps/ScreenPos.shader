@@ -1,6 +1,6 @@
 ﻿Shader "Kinectclother/ScreenPos" {
 	Properties {
-      _MainTex ("Texture", 2D) = "white" {}
+      
       _Detail ("Detail", 2D) = "gray" {}
     }
     SubShader {
@@ -12,10 +12,10 @@
 
       
       struct Input {
-          float2 uv_MainTex;
+
           float4 screenPos;
       };
-      sampler2D _MainTex;
+
       sampler2D _Detail;
       void surf (Input IN, inout SurfaceOutput o) {
           float2 screenUV = IN.screenPos.xy / IN.screenPos.w;
